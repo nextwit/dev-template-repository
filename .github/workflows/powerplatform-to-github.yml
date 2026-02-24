@@ -34,6 +34,14 @@ on:
         options:
           - 'true'
           - 'false'
+      run_powerapps_checker:
+        description: 'Run PowerApps Checker before committing unpacked solution?'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 env:
   SOLUTION_NAME: ${{ github.event.inputs.solution_name }}
@@ -42,6 +50,7 @@ env:
   BUILD_NUMBER: ${{ github.run_number }}
   INCREMENT_VERSION: ${{ github.event.inputs.increment_version }}
   PUBLISH_CUSTOMIZATIONS: ${{ github.event.inputs.publish_customizations }}
+  RUN_POWERAPPS_CHECKER: ${{ github.event.inputs.run_powerapps_checker }}
 
 jobs:
   export-and-unpack:
@@ -116,6 +125,17 @@ jobs:
           solution-type: Unmanaged
           process-canvas-apps: true
 
+      - name: Run PowerApps Checker
+        if: env.RUN_POWERAPPS_CHECKER == 'true'
+        uses: microsoft/powerplatform-actions/check-solution@v1
+        with:
+          environment-url: ${{ env.DATAVERSE_ENV }}
+          app-id: ${{ vars.POWERPLATFORM_APP_ID }}
+          client-secret: ${{ secrets.POWERPLATFORM_CLIENT_SECRET }}
+          tenant-id: ${{ vars.POWERPLATFORM_TENANT_ID }}
+          path: ${{ env.SOLUTIONS_FOLDER }}/${{ env.SOLUTION_NAME }}/${{ env.SOLUTION_NAME }}_unmanaged_${{ env.INCREMENT_VERSION == 'true' && steps.increment-version.outputs.new_version_underscore || steps.get-version.outputs.current_version_underscore }}.zip
+          checker-logs-artifact-name: powerapps-checker-logs-${{ env.SOLUTION_NAME }}
+
       - name: Commit and push changes
         shell: pwsh
         run: |
@@ -137,4 +157,5 @@ jobs:
           echo "Environment: DEV"
           echo "Version incremented: ${{ github.event.inputs.increment_version }}"
           echo "Customizations published: ${{ github.event.inputs.publish_customizations }}"
+          echo "PowerApps Checker run: ${{ github.event.inputs.run_powerapps_checker }}"
           echo "Status: ${{ needs.export-and-unpack.result }}"
