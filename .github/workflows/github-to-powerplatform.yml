@@ -1,0 +1,51 @@
+name: GitHub to Power Platform
+
+on:
+  workflow_dispatch:
+    inputs:
+      solution_name:
+        description: 'Name of the solution to deploy'
+        required: true
+        default: 'MySolution'
+      target_environment:
+        description: 'Target Power Platform environment URL'
+        required: true
+
+env:
+  SOLUTION_NAME: ${{ github.event.inputs.solution_name || 'MySolution' }}
+  TARGET_ENVIRONMENT: ${{ github.event.inputs.target_environment || secrets.POWERPLATFORM_ENVIRONMENT_URL }}
+  SOLUTION_SOURCE_PATH: solutions
+  SOLUTION_OUTBOUND_PATH: out/solutions
+
+jobs:
+  deploy-to-powerplatform:
+    name: Deploy Solution to Power Platform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Pack solution
+        uses: microsoft/powerplatform-actions/pack-solution@v1
+        with:
+          solution-folder: ${{ env.SOLUTION_SOURCE_PATH }}/${{ env.SOLUTION_NAME }}
+          solution-file: ${{ env.SOLUTION_OUTBOUND_PATH }}/${{ env.SOLUTION_NAME }}.zip
+          solution-type: Unmanaged
+
+      - name: Upload solution artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.SOLUTION_NAME }}-packed
+          path: ${{ env.SOLUTION_OUTBOUND_PATH }}/${{ env.SOLUTION_NAME }}.zip
+
+      - name: Import solution to Power Platform
+        uses: microsoft/powerplatform-actions/import-solution@v1
+        with:
+          environment-url: ${{ env.TARGET_ENVIRONMENT }}
+          app-id: ${{ secrets.POWERPLATFORM_APP_ID }}
+          client-secret: ${{ secrets.POWERPLATFORM_CLIENT_SECRET }}
+          tenant-id: ${{ secrets.POWERPLATFORM_TENANT_ID }}
+          solution-file: ${{ env.SOLUTION_OUTBOUND_PATH }}/${{ env.SOLUTION_NAME }}.zip
+          force-overwrite: true
+          publish-changes: true
