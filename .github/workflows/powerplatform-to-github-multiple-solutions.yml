@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       solution_names:
-        description: 'Dataverse solution API names to export — single or comma-separated (e.g. SolutionA,SolutionB,SolutionC)'
+        description: 'Dataverse solution API names to export — single or comma-separated (e.g. MySolution1,MySolution2,MySolution3)'
         required: true
         type: string
       increment_version:
