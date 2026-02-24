@@ -21,6 +21,7 @@
 8. [Commit Message Convention](#8-commit-message-convention)
 9. [Working with Issue Templates](#9-working-with-issue-templates)
 10. [Customization Reference](#10-customization-reference)
+    - [Adding or Removing Solution Names](#101-adding-or-removing-solution-names)
 11. [Troubleshooting](#11-troubleshooting)
 
 ---
@@ -338,12 +339,65 @@ Quick reference for the most common customizations after forking this template:
 | Project name & description | `README.md` | Update title, badges, overview section |
 | Author info | `README.md` (bottom) | Name, blog, LinkedIn, GitHub |
 | License year/author | `LICENSE` | Find & replace the year and name |
-| Default solution name | `.github/workflows/*.yml` → `default:` | Change `'MySolution'` to your solution API name |
-| Default environment URL | `POWERPLATFORM_ENVIRONMENT_URL` secret | Set in repo Settings → Secrets |
+| Available solution names | `.github/workflows/powerplatform-to-github.yml` → `solution_name` options | See [Section 10.1](#101-adding-or-removing-solution-names) |
+| Default environment URL | `POWERPLATFORM_ENVIRONMENT_URL` variable | Set per GitHub Environment in Settings |
 | Branch protection rules | GitHub Settings → Branches | See [Section 7](#7-branching-strategy) |
 | Issue template labels | `.github/ISSUE_TEMPLATE/*.md` → `labels:` | Must match existing repo labels |
 | Discussions URL in config | `.github/ISSUE_TEMPLATE/config.yml` | Update org/repo name in the URL |
 | Add new workflows | `.github/workflows/` | Use `workflow_dispatch` for manual triggers |
+
+---
+
+### 10.1 Adding or Removing Solution Names
+
+The **Power Platform to GitHub** workflow presents `solution_name` as a dropdown so users can only pick a known, valid solution. The list is maintained directly in the workflow file.
+
+**File:** [.github/workflows/powerplatform-to-github.yml](.github/workflows/powerplatform-to-github.yml)
+
+```yaml
+      solution_name:
+        description: 'Dataverse solution name to export and unpack'
+        required: true
+        type: choice
+        options:
+          - MySolution1   # ← replace with your real solution API names
+          - MySolution2
+          - MySolution3
+```
+
+#### Rules
+
+- Values must match the **API name** (unique name) of the solution in Dataverse — not the display name.
+- API names are **case-sensitive**.
+- The **first entry** in the list becomes the default selection.
+- There is no limit on the number of options, but keep the list focused on solutions actively maintained in this repository.
+
+#### How to find a solution's API name
+
+1. Go to [make.powerapps.com](https://make.powerapps.com) or [Power Platform Admin Center](https://admin.powerplatform.microsoft.com).
+2. Select your environment → **Solutions**.
+3. The **Name** column (not *Display name*) shows the API name — e.g. `ContosoCore`.
+
+Alternatively, using the pac CLI:
+
+```powershell
+pac solution list
+```
+
+The first column of the output is the unique API name.
+
+#### Example — adding a new solution
+
+```yaml
+        options:
+          - ContosoCore
+          - ContosoShared
+          - ContosoPortal      # newly added
+```
+
+#### Example — removing a retired solution
+
+Simply delete the line. The change takes effect on the next workflow run with no other modifications required.
 
 ---
 

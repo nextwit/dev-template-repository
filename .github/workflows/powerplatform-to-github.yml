@@ -3,6 +3,13 @@ name: Power Platform to GitHub
 on:
   workflow_dispatch:
     inputs:
+      # -----------------------------------------------------------------------
+      # CUSTOMIZE SOLUTION NAMES
+      # Add, remove, or rename entries in the `options` list below to match
+      # the API names of your Dataverse solutions (case-sensitive).
+      # The API name is visible in Power Platform → Solutions → Display Name
+      # column. Use the value shown in parentheses, e.g. "ContosoCore".
+      # -----------------------------------------------------------------------
       solution_name:
         description: 'Dataverse solution name to export and unpack'
         required: true
