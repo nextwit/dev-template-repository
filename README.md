@@ -43,16 +43,13 @@ Use this template to eliminate repetitive setup work and start every project ali
 
 | Feature | Description |
 |---|---|
-| 📁 Folder structure | Standardized layout for `src`, `docs`, `tests`, `scripts`, `.github` |
-| ⚙️ GitHub Actions | Ready-made CI/CD workflow templates |
+| ⚙️ GitHub Actions | Power Platform ALM workflows: export from and deploy to Dataverse |
+| 🌍 GitHub Environments | DEV and MAINDEV environment scoping for secrets and variables |
 | 🔒 Branch protection | Pre-configured branching strategy documentation |
-| 📝 Issue templates | Bug report & feature request templates |
-| 🔁 PR template | Pull request checklist and review guidelines |
-| 🧹 .gitignore | Comprehensive ignore rules for common stacks |
+| 📝 Issue templates | Bug report, feature request, and question templates |
+| 🛠️ PowerShell scripts | Reusable pac CLI scripts for authentication, versioning, and git operations |
 | 📄 License | MIT License pre-configured |
-| 🤝 Contributing guide | Contribution standards and code of conduct |
-| 🛡️ Security policy | Responsible disclosure guidelines |
-| 📋 Changelog | CHANGELOG.md with Keep a Changelog format |
+| 📚 Developer documentation | Getting started guide and secrets & variables reference |
 
 ---
 
@@ -93,43 +90,33 @@ git push -u origin main
 ```
 dev-template-repository/
 │
-├── .github/                        # GitHub-specific configuration
+├── .github/                              # GitHub-specific configuration
 │   ├── ISSUE_TEMPLATE/
-│   │   ├── bug_report.md           # Bug report template
-│   │   └── feature_request.md      # Feature request template
-│   ├── workflows/
-│   │   ├── ci.yml                  # Continuous integration workflow
-│   │   ├── cd.yml                  # Continuous deployment workflow
-│   │   └── pr-validation.yml       # PR title and branch validation
-│   └── PULL_REQUEST_TEMPLATE.md    # Pull request checklist
+│   │   ├── bug_report.md                 # Bug report template
+│   │   ├── feature_request.md            # Feature request template
+│   │   ├── question.md                   # Question / support template
+│   │   └── config.yml                    # Disables blank issues; links to Discussions
+│   └── workflows/
+│       ├── github-to-powerplatform.yml   # Deploy solution to Power Platform (manual)
+│       └── powerplatform-to-github.yml   # Export & unpack solution from Power Platform (manual)
 │
-├── docs/                           # Project documentation
-│   ├── architecture/               # Architecture decision records (ADRs)
-│   ├── api/                        # API documentation
-│   └── guides/                     # Developer and user guides
+├── documentation/                        # Developer documentation
+│   ├── GETTING_STARTED.md               # End-to-end developer onboarding guide
+│   └── SECRETS_AND_VARIABLES.md         # GitHub secrets & variables reference
 │
-├── src/                            # Source code
-│   ├── components/                 # Reusable components / PCF controls
-│   ├── services/                   # Business logic and service layer
-│   ├── models/                     # Data models and schemas
-│   └── utils/                      # Shared utilities and helpers
+├── scripts/                              # Automation scripts
+│   └── powerplatform/                    # Power Platform PAC CLI scripts
+│       ├── Authenticate-Dataverse.ps1    # Authenticate pac to Dataverse
+│       ├── Get-SolutionVersion.ps1       # Retrieve current solution version
+│       ├── Increment-SolutionVersion.ps1 # Bump solution patch version in Dataverse
+│       ├── New-SolutionsFolder.ps1       # Create solution folder structure
+│       └── Commit-And-Push.ps1           # Stage, commit, and push solution source
 │
-├── tests/                          # Test suites
-│   ├── unit/                       # Unit tests
-│   ├── integration/                # Integration tests
-│   └── e2e/                        # End-to-end tests
+├── solutions/                            # Power Platform solution source (unpacked)
+│   └── [SolutionName]/                   # One subfolder per solution (created at runtime)
 │
-├── scripts/                        # Automation and utility scripts
-│   ├── deploy/                     # Deployment scripts
-│   └── setup/                      # Environment setup scripts
-│
-├── .editorconfig                   # Editor configuration
-├── .gitignore                      # Git ignore rules
-├── CHANGELOG.md                    # Project changelog
-├── CONTRIBUTING.md                 # Contribution guidelines
-├── LICENSE                         # MIT License
-├── SECURITY.md                     # Security policy
-└── README.md                       # This file
+├── LICENSE                               # MIT License
+└── README.md                             # This file
 ```
 
 ---
@@ -167,61 +154,60 @@ Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `perf`, `ci`
 
 ## ⚙️ CI/CD Workflows
 
-### Continuous Integration (`ci.yml`)
+Both workflows are triggered **manually** via `workflow_dispatch` from the **Actions** tab.
 
-Triggered on every push and pull request to `main` and `develop`:
+### GitHub to Power Platform (`github-to-powerplatform.yml`)
 
-- ✅ Lint and code style checks
-- ✅ Unit and integration test execution
-- ✅ Build validation
-- ✅ Security vulnerability scanning
+Deploys a packed solution from source control to a target Power Platform environment.
 
-### Continuous Deployment (`cd.yml`)
+- 🔽 Select GitHub environment (`DEV` or `MAINDEV`) and solution name
+- 📦 Packs solution source from `solutions/<name>/`
+- ☁️ Imports solution into the target Dataverse environment
+- ✅ Uploads packed `.zip` as a workflow artifact
 
-Triggered on merge to `main`:
+### Power Platform to GitHub (`powerplatform-to-github.yml`)
 
-- 🚀 Build and package artifacts
-- 🚀 Deploy to target environment (configure your environment secrets)
-- 🚀 Post-deployment smoke tests
+Exports and unpacks a solution from the DEV Dataverse environment into source control.
 
-### PR Validation (`pr-validation.yml`)
+- 🔽 Select solution name, optionally increment version and/or publish customizations
+- 🔐 Authenticates to Dataverse using the DEV environment service principal
+- 📋 Retrieves current solution version via `pac solution list`
+- 🔢 Optionally bumps the patch version in Dataverse before export
+- 📤 Publishes all customizations if selected
+- 📦 Exports unmanaged solution to a versioned `.zip`
+- 📂 Unpacks solution source (including canvas apps) into `solutions/<name>/`
+- 💾 Commits and pushes unpacked source directly to `main`
 
-- Validates PR title follows Conventional Commits format
-- Enforces branch naming conventions
-- Checks for linked issues
+### Required GitHub Environments & Credentials
 
-### Required GitHub Secrets
+See [documentation/SECRETS_AND_VARIABLES.md](documentation/SECRETS_AND_VARIABLES.md) for the full reference.
 
-Configure the following secrets in your repository settings before enabling workflows:
-
-| Secret | Description |
-|---|---|
-| `AZURE_CLIENT_ID` | Azure service principal client ID |
-| `AZURE_CLIENT_SECRET` | Azure service principal secret |
-| `AZURE_TENANT_ID` | Azure tenant ID |
-| `POWER_PLATFORM_SPN_KEY` | Power Platform service principal key |
-| `SONAR_TOKEN` | SonarCloud token (optional) |
+| Environment | Variable | Secret |
+|---|---|---|
+| `DEV` | `POWERPLATFORM_APP_ID`, `POWERPLATFORM_TENANT_ID`, `POWERPLATFORM_ENVIRONMENT_URL` | `POWERPLATFORM_CLIENT_SECRET` |
+| `MAINDEV` | `POWERPLATFORM_APP_ID`, `POWERPLATFORM_TENANT_ID`, `POWERPLATFORM_ENVIRONMENT_URL` | `POWERPLATFORM_CLIENT_SECRET` |
 
 ---
 
 ## 🔧 Configuration Standards
 
-### Editor & Code Style
+### Secrets & Credentials
 
-- `.editorconfig` enforces consistent indentation, line endings, and charset across all editors.
-- Recommended extensions for VS Code are listed in `.vscode/extensions.json`.
+- Never commit secrets, credentials, or environment URLs to the repository.
+- All sensitive values are managed via **GitHub Environment secrets and variables**.
+- See [documentation/SECRETS_AND_VARIABLES.md](documentation/SECRETS_AND_VARIABLES.md) for the full reference.
 
-### Environment Variables
+### Power Platform Scripts
 
-- Never commit secrets or credentials to the repository.
-- Use `.env.example` as a template — copy to `.env` locally and populate values.
-- All secrets should be managed via GitHub Secrets, Azure Key Vault, or environment-specific configuration services.
+- All PowerShell automation is located in `scripts/powerplatform/`.
+- Scripts use `[CmdletBinding()]`, typed parameters, and `$ErrorActionPreference = 'Stop'`.
+- Scripts write step outputs to `$env:GITHUB_OUTPUT` for inter-step data passing.
 
-### Code Quality
+### Solution Source Control
 
-- All code should pass linting before committing (use pre-commit hooks where applicable).
-- Minimum test coverage target: **80%**.
-- All public functions and classes must be documented.
+- Solutions are stored **unpacked** in `solutions/<SolutionName>/` for human-readable diffs.
+- Packed `.zip` files are never committed — they are excluded via `.gitignore` (add `solutions/**/*.zip`).
+- Canvas app sources are unpacked with `process-canvas-apps: true`.
 
 ---
 
@@ -237,11 +223,11 @@ Replace all placeholder values with your project details:
 
 ```bash
 # Files to update:
-# - README.md         → project name, description, badges, links
-# - package.json      → name, version, author (if Node.js)
-# - LICENSE           → year and author name
-# - CHANGELOG.md      → initial version entry
-# - .github/workflows → environment targets and secrets references
+# - README.md                           → project name, description, badges, links
+# - LICENSE                             → year and author name
+# - .github/workflows/*.yml             → solution names, environment targets
+# - documentation/GETTING_STARTED.md   → project-specific setup steps
+# - documentation/SECRETS_AND_VARIABLES.md → environment and secret details
 ```
 
 ### Step 3 — Configure branch protection
@@ -253,9 +239,9 @@ In your new repo: **Settings → Branches → Add rule** for `main` and `develop
 - ✅ Require conversation resolution before merging
 - ✅ Restrict force pushes
 
-### Step 4 — Set up secrets
+### Step 4 — Set up GitHub Environments and secrets
 
-Add the required secrets listed in the [CI/CD section](#cicd-workflows).
+Create `DEV` and `MAINDEV` environments and add the required variables and secret. See [documentation/SECRETS_AND_VARIABLES.md](documentation/SECRETS_AND_VARIABLES.md) for the full guide.
 
 ### Step 5 — Start building
 
@@ -267,19 +253,19 @@ You're ready. Remove any template-specific files not relevant to your project an
 
 | What to customize | Where |
 |---|---|
-| Project name & description | `README.md`, `package.json` |
-| License type | `LICENSE` |
-| Workflow triggers & targets | `.github/workflows/*.yml` |
-| Folder structure | Rename/add folders in `src/` |
-| Issue & PR templates | `.github/ISSUE_TEMPLATE/`, `.github/PULL_REQUEST_TEMPLATE.md` |
-| Ignore rules | `.gitignore` |
-| Editor settings | `.editorconfig` |
+| Project name & description | `README.md` |
+| License year / author | `LICENSE` |
+| Solution name options | `.github/workflows/powerplatform-to-github.yml` → `solution_name` options |
+| Workflow environment targets | `.github/workflows/*.yml` → `environment:` |
+| Issue templates | `.github/ISSUE_TEMPLATE/` |
+| GitHub Environments & credentials | Settings → Environments → DEV / MAINDEV |
+| Developer documentation | `documentation/GETTING_STARTED.md` |
 
 ---
 
 ## 🤝 Contributing
 
-Contributions, improvements, and suggestions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) before submitting a pull request.
+Contributions, improvements, and suggestions are welcome!
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/your-improvement`
@@ -290,7 +276,7 @@ Contributions, improvements, and suggestions are welcome! Please read [CONTRIBUT
 
 ## 🛡️ Security
 
-Please review our [Security Policy](SECURITY.md) for responsible disclosure guidelines. Do not open public issues for security vulnerabilities.
+Do not open public issues for security vulnerabilities. Please use [GitHub Security Advisories](https://github.com/nextwit/dev-template-repository/security/advisories) for responsible disclosure.
 
 ---
 
