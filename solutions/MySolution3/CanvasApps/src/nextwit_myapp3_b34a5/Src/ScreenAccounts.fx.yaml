@@ -1,0 +1,50 @@
+ScreenAccounts As screen:
+    Fill: =Color.White
+    LoadingSpinnerColor: =App.Theme.Colors.Primary
+
+    ButtonCanvas1_2 As Button:
+        AcceptsFocus: =true
+        AccessibleLabel: =""
+        Align: =""
+        Appearance: ="Primary"
+        BasePaletteColor: =
+        BorderColor: =
+        BorderStyle: =""
+        ContentLanguage: =""
+        DisplayMode: =DisplayMode.Edit
+        Font: =""
+        FontColor: =
+        FontItalic: =false
+        FontSize: =0
+        FontStrikethrough: =false
+        FontUnderline: =false
+        FontWeight: =""
+        Height: =70
+        Icon: =""
+        IconRotation: =0
+        IconStyle: ="Outline"
+        Layout: ="Icon before"
+        OnSelect: =Navigate(MainScreen)
+        TabIndex: =0
+        Text: ="Back to Main Screen"
+        Tooltip: =""
+        VerticalAlign: =""
+        Visible: =true
+        Width: =172
+        X: =40
+        Y: =205
+        ZIndex: =1
+
+    Label1_1 As label:
+        BorderColor: =App.Theme.Colors.Darker40
+        Color: =RGBA(0, 0, 0, 1)
+        DisabledColor: =RGBA(166, 166, 166, 1)
+        Font: =App.Theme.Font
+        Height: =86
+        Size: =30
+        Text: ="Account Screen"
+        Width: =466
+        X: =60
+        Y: =52
+        ZIndex: =2
+

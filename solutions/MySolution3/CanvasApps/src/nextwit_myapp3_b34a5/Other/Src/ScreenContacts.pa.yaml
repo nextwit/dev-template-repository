@@ -1,0 +1,29 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  ScreenContacts:
+    Children:
+      - ButtonCanvas1_3:
+          Control: Button@0.0.45
+          Properties:
+            Height: =76
+            OnSelect: =Navigate(MainScreen)
+            Text: ="Back to Main Screen"
+            Width: =140
+            X: =40
+            Y: =220
+      - Label1_2:
+          Control: Label@2.5.1
+          Properties:
+            Height: =86
+            Size: =30
+            Text: ="Contact Screen"
+            Width: =466
+            X: =60
+            Y: =52

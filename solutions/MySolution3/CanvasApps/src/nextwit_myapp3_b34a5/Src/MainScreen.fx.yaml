@@ -1,0 +1,60 @@
+MainScreen As screen:
+    Fill: =Color.White
+    LoadingSpinnerColor: =App.Theme.Colors.Primary
+
+    ButtonCanvas1 As Button:
+        DisplayMode: =DisplayMode.Edit
+        Height: =125
+        OnSelect: =Navigate(ScreenAccounts)
+        Text: ="Open Accounts"
+        Width: =312
+        X: =40
+        Y: =245
+        ZIndex: =1
+
+    ButtonCanvas1_1 As Button:
+        AcceptsFocus: =true
+        AccessibleLabel: =""
+        Align: =""
+        Appearance: ="Primary"
+        BasePaletteColor: =
+        BorderColor: =
+        BorderStyle: =""
+        ContentLanguage: =""
+        DisplayMode: =DisplayMode.Edit
+        Font: =""
+        FontColor: =
+        FontItalic: =false
+        FontSize: =0
+        FontStrikethrough: =false
+        FontUnderline: =false
+        FontWeight: =""
+        Height: =125
+        Icon: =""
+        IconRotation: =0
+        IconStyle: ="Outline"
+        Layout: ="Icon before"
+        OnSelect: =Navigate(ScreenContacts)
+        TabIndex: =0
+        Text: ="Open Contacts"
+        Tooltip: =""
+        VerticalAlign: =""
+        Visible: =true
+        Width: =312
+        X: =395
+        Y: =245
+        ZIndex: =2
+
+    Label1 As label:
+        BorderColor: =App.Theme.Colors.Darker40
+        Color: =RGBA(0, 0, 0, 1)
+        DisabledColor: =RGBA(166, 166, 166, 1)
+        Font: =App.Theme.Font
+        Height: =86
+        Size: =30
+        Text: ="Main Screen"
+        Width: =466
+        X: =40
+        Y: =32
+        ZIndex: =4
+

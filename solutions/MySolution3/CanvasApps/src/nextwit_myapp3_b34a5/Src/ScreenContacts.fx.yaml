@@ -1,0 +1,50 @@
+ScreenContacts As screen:
+    Fill: =Color.White
+    LoadingSpinnerColor: =App.Theme.Colors.Primary
+
+    ButtonCanvas1_3 As Button:
+        AcceptsFocus: =true
+        AccessibleLabel: =""
+        Align: =""
+        Appearance: ="Primary"
+        BasePaletteColor: =
+        BorderColor: =
+        BorderStyle: =""
+        ContentLanguage: =""
+        DisplayMode: =DisplayMode.Edit
+        Font: =""
+        FontColor: =
+        FontItalic: =false
+        FontSize: =0
+        FontStrikethrough: =false
+        FontUnderline: =false
+        FontWeight: =""
+        Height: =76
+        Icon: =""
+        IconRotation: =0
+        IconStyle: ="Outline"
+        Layout: ="Icon before"
+        OnSelect: =Navigate(MainScreen)
+        TabIndex: =0
+        Text: ="Back to Main Screen"
+        Tooltip: =""
+        VerticalAlign: =""
+        Visible: =true
+        Width: =140
+        X: =40
+        Y: =220
+        ZIndex: =1
+
+    Label1_2 As label:
+        BorderColor: =App.Theme.Colors.Darker40
+        Color: =RGBA(0, 0, 0, 1)
+        DisabledColor: =RGBA(166, 166, 166, 1)
+        Font: =App.Theme.Font
+        Height: =86
+        Size: =30
+        Text: ="Contact Screen"
+        Width: =466
+        X: =60
+        Y: =52
+        ZIndex: =2
+
