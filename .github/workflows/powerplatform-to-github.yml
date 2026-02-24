@@ -4,81 +4,130 @@ on:
   workflow_dispatch:
     inputs:
       solution_name:
-        description: 'Name of the solution to export'
+        description: 'Dataverse solution name to export and unpack'
         required: true
-        default: 'MySolution'
-      source_environment:
-        description: 'Source Power Platform environment URL'
-        required: false
-      solution_type:
-        description: 'Solution type to export'
-        required: true
-        default: 'Unmanaged'
         type: choice
         options:
-          - Unmanaged
-          - Managed
-          - Both
+          - MySolution1
+          - MySolution2
+          - MySolution3
+      increment_version:
+        description: 'Increase solution version number before export?'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+      publish_customizations:
+        description: 'Publish customizations before export?'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 env:
-  SOLUTION_NAME: ${{ github.event.inputs.solution_name || 'MySolution' }}
-  SOURCE_ENVIRONMENT: ${{ github.event.inputs.source_environment || secrets.POWERPLATFORM_ENVIRONMENT_URL }}
-  SOLUTION_EXPORTED_PATH: out/exported
-  SOLUTION_UNPACKED_PATH: solutions
-  BRANCH_NAME: export/${{ github.event.inputs.solution_name || 'MySolution' }}
+  SOLUTION_NAME: ${{ github.event.inputs.solution_name }}
+  DATAVERSE_ENV: ${{ vars.POWERPLATFORM_ENVIRONMENT_URL }}
+  SOLUTIONS_FOLDER: 'solutions'
+  BUILD_NUMBER: ${{ github.run_number }}
+  INCREMENT_VERSION: ${{ github.event.inputs.increment_version }}
+  PUBLISH_CUSTOMIZATIONS: ${{ github.event.inputs.publish_customizations }}
 
 jobs:
-  export-from-powerplatform:
-    name: Export Solution from Power Platform
-    runs-on: ubuntu-latest
+  export-and-unpack:
+    runs-on: windows-latest
+    environment: DEV
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Export solution from Power Platform
+      - name: Install Power Platform CLI
+        uses: microsoft/powerplatform-actions/actions-install@v1
+
+      - name: Authenticate with Dataverse
+        shell: pwsh
+        run: |
+          scripts/powerplatform/Authenticate-Dataverse.ps1 `
+            -DataverseEnv   "${{ env.DATAVERSE_ENV }}" `
+            -AppId          "${{ vars.POWERPLATFORM_APP_ID }}" `
+            -ClientSecret   "${{ secrets.POWERPLATFORM_CLIENT_SECRET }}" `
+            -TenantId       "${{ vars.POWERPLATFORM_TENANT_ID }}"
+
+      - name: Get solution version
+        id: get-version
+        shell: pwsh
+        run: |
+          scripts/powerplatform/Get-SolutionVersion.ps1 `
+            -SolutionName "${{ env.SOLUTION_NAME }}"
+
+      - name: Increment solution version (patch)
+        id: increment-version
+        if: env.INCREMENT_VERSION == 'true'
+        shell: pwsh
+        run: |
+          scripts/powerplatform/Increment-SolutionVersion.ps1 `
+            -SolutionName    "${{ env.SOLUTION_NAME }}" `
+            -CurrentVersion  "${{ steps.get-version.outputs.current_version }}"
+
+      - name: Create solutions folder structure
+        shell: pwsh
+        run: |
+          scripts/powerplatform/New-SolutionsFolder.ps1 `
+            -SolutionsFolder "${{ env.SOLUTIONS_FOLDER }}" `
+            -SolutionName    "${{ env.SOLUTION_NAME }}"
+
+      - name: Publish customizations
+        id: publish-customizations
+        if: env.PUBLISH_CUSTOMIZATIONS == 'true'
+        uses: microsoft/powerplatform-actions/publish-solution@v1
+        with:
+          environment-url: ${{ env.DATAVERSE_ENV }}
+          app-id: ${{ vars.POWERPLATFORM_APP_ID }}
+          client-secret: ${{ secrets.POWERPLATFORM_CLIENT_SECRET }}
+          tenant-id: ${{ vars.POWERPLATFORM_TENANT_ID }}
+
+      - name: Export unmanaged solution
         uses: microsoft/powerplatform-actions/export-solution@v1
         with:
-          environment-url: ${{ env.SOURCE_ENVIRONMENT }}
-          app-id: ${{ secrets.POWERPLATFORM_APP_ID }}
+          environment-url: ${{ env.DATAVERSE_ENV }}
+          app-id: ${{ vars.POWERPLATFORM_APP_ID }}
           client-secret: ${{ secrets.POWERPLATFORM_CLIENT_SECRET }}
-          tenant-id: ${{ secrets.POWERPLATFORM_TENANT_ID }}
+          tenant-id: ${{ vars.POWERPLATFORM_TENANT_ID }}
           solution-name: ${{ env.SOLUTION_NAME }}
-          solution-output-file: ${{ env.SOLUTION_EXPORTED_PATH }}/${{ env.SOLUTION_NAME }}.zip
-          managed: ${{ github.event.inputs.solution_type == 'Managed' }}
+          solution-output-file: ${{ env.SOLUTIONS_FOLDER }}/${{ env.SOLUTION_NAME }}/${{ env.SOLUTION_NAME }}_unmanaged_${{ env.INCREMENT_VERSION == 'true' && steps.increment-version.outputs.new_version_underscore || steps.get-version.outputs.current_version_underscore }}.zip
+          managed: false
 
-      - name: Unpack solution
+      - name: Unpack unmanaged solution
         uses: microsoft/powerplatform-actions/unpack-solution@v1
         with:
-          solution-file: ${{ env.SOLUTION_EXPORTED_PATH }}/${{ env.SOLUTION_NAME }}.zip
-          solution-folder: ${{ env.SOLUTION_UNPACKED_PATH }}/${{ env.SOLUTION_NAME }}
-          solution-type: ${{ github.event.inputs.solution_type || 'Unmanaged' }}
-          overwrite-files: true
+          solution-file: ${{ env.SOLUTIONS_FOLDER }}/${{ env.SOLUTION_NAME }}/${{ env.SOLUTION_NAME }}_unmanaged_${{ env.INCREMENT_VERSION == 'true' && steps.increment-version.outputs.new_version_underscore || steps.get-version.outputs.current_version_underscore }}.zip
+          solution-folder: ${{ env.SOLUTIONS_FOLDER }}/${{ env.SOLUTION_NAME }}
+          solution-type: Unmanaged
+          process-canvas-apps: true
 
-      - name: Upload exported solution artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.SOLUTION_NAME }}-exported
-          path: ${{ env.SOLUTION_EXPORTED_PATH }}/${{ env.SOLUTION_NAME }}.zip
+      - name: Commit and push changes
+        shell: pwsh
+        run: |
+          scripts/powerplatform/Commit-And-Push.ps1 `
+            -SolutionsFolder "${{ env.SOLUTIONS_FOLDER }}" `
+            -SolutionName    "${{ env.SOLUTION_NAME }}"
+        continue-on-error: true
 
-      - name: Create Pull Request with exported solution
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "chore: export solution ${{ env.SOLUTION_NAME }} from Power Platform"
-          branch: ${{ env.BRANCH_NAME }}
-          delete-branch: true
-          title: "Export: ${{ env.SOLUTION_NAME }} from Power Platform"
-          body: |
-            ## Power Platform Solution Export
+  notify:
+    runs-on: ubuntu-latest
+    needs: export-and-unpack
+    if: always()
 
-            **Solution:** `${{ env.SOLUTION_NAME }}`
-            **Source environment:** ${{ env.SOURCE_ENVIRONMENT }}
-            **Exported by:** @${{ github.actor }}
-            **Date:** ${{ github.event.repository.updated_at }}
-
-            ---
-            This PR was automatically generated by the **Power Platform to GitHub** workflow.
-            Review the changes and merge to update the solution source in `main`.
-          labels: |
-            powerplatform
-            automated
+    steps:
+      - name: Workflow Status
+        run: |
+          echo "Export and unpack workflow completed"
+          echo "Solution: ${{ github.event.inputs.solution_name }}"
+          echo "Environment: DEV"
+          echo "Version incremented: ${{ github.event.inputs.increment_version }}"
+          echo "Customizations published: ${{ github.event.inputs.publish_customizations }}"
+          echo "Status: ${{ needs.export-and-unpack.result }}"
