@@ -104,7 +104,7 @@ function Assert-GhCli {
     if (-not (Get-Command gh -ErrorAction SilentlyContinue)) {
         throw "GitHub CLI (gh) is not installed. Install it from https://cli.github.com and run 'gh auth login'."
     }
-    $authStatus = gh auth status 2>&1
+    gh auth status 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
         throw "GitHub CLI is not authenticated. Run 'gh auth login' first."
     }
@@ -132,7 +132,7 @@ function New-GhEnvironment {
         } | Where-Object { $_ }
 
         if ($reviewerObjects) {
-            $reviewerJson = $reviewerObjects | ConvertTo-Json -Compress -AsArray
+            $reviewerJson = @($reviewerObjects) | ConvertTo-Json -Compress
         }
     }
 
@@ -145,8 +145,15 @@ function New-GhEnvironment {
         $body = "{`"reviewers`":$reviewerJson,`"deployment_branch_policy`":null}"
     }
 
-    gh api --method PUT "repos/$Repo/environments/$Environment" `
-        --input - <<< $body | Out-Null
+    $tempFile = [System.IO.Path]::GetTempFileName()
+    try {
+        [System.IO.File]::WriteAllText($tempFile, $body, [System.Text.UTF8Encoding]::new($false))
+        gh api --method PUT "repos/$Repo/environments/$Environment" `
+            --input $tempFile | Out-Null
+    }
+    finally {
+        Remove-Item -Path $tempFile -Force -ErrorAction SilentlyContinue
+    }
 
     if ($LASTEXITCODE -ne 0) {
         # Fallback: create without body (gh REST)
