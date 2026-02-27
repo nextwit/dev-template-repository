@@ -3,7 +3,10 @@ MainScreen As screen:
     LoadingSpinnerColor: =App.Theme.Colors.Primary
 
     ButtonCanvas1 As Button:
+        BasePaletteColor: =
+        BorderColor: =
         DisplayMode: =DisplayMode.Edit
+        FontColor: =
         Height: =125
         OnSelect: =Navigate(ScreenAccounts)
         Text: ="Open Accounts"
@@ -52,7 +55,7 @@ MainScreen As screen:
         Font: =App.Theme.Font
         Height: =86
         Size: =30
-        Text: ="Main Screen"
+        Text: ="Main Screen - Entry Point"
         Width: =466
         X: =40
         Y: =32
