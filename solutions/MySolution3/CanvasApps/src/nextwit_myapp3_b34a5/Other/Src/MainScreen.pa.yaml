@@ -32,7 +32,7 @@ Screens:
           Properties:
             Height: =86
             Size: =30
-            Text: ="Main Screen"
+            Text: ="Main Screen - Entry Point"
             Width: =466
             X: =40
             Y: =32

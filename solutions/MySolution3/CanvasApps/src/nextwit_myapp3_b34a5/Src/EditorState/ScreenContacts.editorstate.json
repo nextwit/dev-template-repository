@@ -554,7 +554,7 @@
           "RuleProviderType": "Unknown"
         }
       ],
-      "StyleName": "",
+      "StyleName": "defaultLabelStyle",
       "Type": "ControlInfo"
     },
     "ScreenContacts": {

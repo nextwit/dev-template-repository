@@ -3,21 +3,21 @@
   "ControlUniqueGuids": {},
   "ControlUniqueIds": {
     "App": 1,
-    "ButtonCanvas1": 7,
-    "ButtonCanvas1_1": 8,
-    "ButtonCanvas1_2": 9,
-    "ButtonCanvas1_3": 10,
+    "ButtonCanvas1": 6,
+    "ButtonCanvas1_1": 7,
+    "ButtonCanvas1_2": 10,
+    "ButtonCanvas1_3": 13,
     "Host": 3,
-    "Label1": 12,
-    "Label1_1": 13,
-    "Label1_2": 14,
+    "Label1": 5,
+    "Label1_1": 9,
+    "Label1_2": 12,
     "MainScreen": 4,
-    "ScreenAccounts": 5,
-    "ScreenContacts": 6
+    "ScreenAccounts": 8,
+    "ScreenContacts": 11
   },
   "FunctionParamsInvariantScripts": {},
   "FunctionParamsInvariantScriptsOnInstances": {},
-  "HeaderLastSavedDateTimeUTC": "02/24/2026 11:19:34",
+  "HeaderLastSavedDateTimeUTC": "02/27/2026 13:51:39",
   "IsLegacyComponentAllowGlobalScopeCase": false,
   "LocalConnectionIDReferences": {},
   "LocalDatabaseReferencesAsEmpty": true,
@@ -125,11 +125,13 @@
   "RuleScreenIdWithoutScreen": {},
   "TemplateVersions": {},
   "VolatileProperties": {
-    "AnalysisLoadTime": 0.1221035,
+    "AnalysisLoadTime": 0.14386379999999999,
     "ControlCount": {
-      "label": 2,
-      "PowerApps_CoreControls_ButtonCanvas": 3
-    }
+      "label": 3,
+      "PowerApps_CoreControls_ButtonCanvas": 4,
+      "screen": 3
+    },
+    "DeserializationLoadTime": 1.0088636
   },
   "WasLocalDatabaseReferencesEmpty": true
 }

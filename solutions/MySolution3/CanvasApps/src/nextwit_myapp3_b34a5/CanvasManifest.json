@@ -11,7 +11,7 @@
   },
   "Properties": {
     "AppCreationSource": "AppFromScratch",
-    "AppDescription": "",
+    "AppDescription": "Streamline account and contact management by enabling users to quickly access and navigate essential information within MyApp3. Empower business users to efficiently manage key data and improve productivity through an intuitive interface.",
     "AppPreviewFlagsMap": {
       "adaptivepaging": false,
       "aibuilderserviceenrollment": false,
@@ -116,7 +116,7 @@
     "FileID": "d3ee4b73-383a-4bf5-92fb-f09ea9842cb3",
     "Id": "d3ee4b73-383a-4bf5-92fb-f09ea9842cb3",
     "LocalDatabaseReferences": "",
-    "ManualOfflineProfileId": null,
+    "ManualOfflineProfileId": "",
     "Name": "MyApp3",
     "OriginatingVersion": "1.349",
     "ParserErrorCount": 0,
